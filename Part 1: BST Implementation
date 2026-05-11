@@ -1,0 +1,131 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Book {
+    int id;
+    string title;
+    string author;
+    Book(int bookId = 0, string bookTitle = "", string bookAuthor = "")
+        : id(bookId), title(bookTitle), author(bookAuthor) {}
+};
+
+struct Node {
+    Book book;
+    Node* left;
+    Node* right;
+    Node(Book b) : book(b), left(nullptr), right(nullptr) {}
+};
+
+class BookBST {
+private:
+    Node* root;
+
+    Node* insert(Node* node, Book book) {
+        if (node == nullptr)
+            return new Node(book);
+        if (book.id < node->book.id)
+            node->left = insert(node->left, book);
+        else if (book.id > node->book.id)
+            node->right = insert(node->right, book);
+        return node;
+    }
+
+    Node* search(Node* node, int id) {
+        if (node == nullptr || node->book.id == id)
+            return node;
+        if (id < node->book.id)
+            return search(node->left, id);
+        return search(node->right, id);
+    }
+
+    Node* findMin(Node* node) {
+        while (node->left != nullptr)
+            node = node->left;
+        return node;
+    }
+
+    Node* remove(Node* node, int id) {
+        if (node == nullptr)
+            return nullptr;
+        if (id < node->book.id)
+            node->left = remove(node->left, id);
+        else if (id > node->book.id)
+            node->right = remove(node->right, id);
+        else {
+            if (node->left == nullptr) {
+                Node* temp = node->right;
+                delete node;
+                return temp;
+            }
+            else if (node->right == nullptr) {
+                Node* temp = node->left;
+                delete node;
+                return temp;
+            }
+            Node* minRight = findMin(node->right);
+            node->book = minRight->book;
+            node->right = remove(node->right, minRight->book.id);
+        }
+        return node;
+    }
+
+    void inorder(Node* node) {
+        if (node == nullptr)
+            return;
+        inorder(node->left);
+        cout << node->book.id << " | " << node->book.title << " | " << node->book.author << endl;
+        inorder(node->right);
+    }
+
+    void clear(Node* node) {
+        if (node == nullptr)
+            return;
+        clear(node->left);
+        clear(node->right);
+        delete node;
+    }
+
+public:
+    BookBST() : root(nullptr) {}
+    ~BookBST() { clear(root); }
+
+    void insertBook(int id, string title, string author) {
+        root = insert(root, Book(id, title, author));
+        cout << "Book added\n";
+    }
+
+    void deleteBook(int id) {
+        root = remove(root, id);
+        cout << "Book deleted\n";
+    }
+
+    void searchBook(int id) {
+        Node* result = search(root, id);
+        if (result)
+            cout << result->book.id << " | " << result->book.title << " | " << result->book.author << endl;
+        else
+            cout << "Not found\n";
+    }
+
+    void displayBooks() {
+        inorder(root);
+    }
+};
+
+int main() {
+    BookBST library;
+    library.insertBook(1, "Riyad as-Salihin", "Imam Nawawi");
+    library.insertBook(2, "Fortress of the Muslim", "Saeed bin Ali bin Wahf Al-Qahtani");
+    library.insertBook(3, "Tafsir Ibn Kathir", "Ibn Kathir");
+    library.insertBook(4, "Al-Arba'in An-Nawawiyyah", "Imam Nawawi");
+    cout << "Show All Books:\n";
+    library.displayBooks();
+    cout << "\nSearch:id(3)\n";
+    library.searchBook(3);
+    cout << "\nDelete:id(2)\n";
+    library.deleteBook(2);
+    cout << "\nShow All Books:\n";
+    library.displayBooks();
+    return 0;
+}

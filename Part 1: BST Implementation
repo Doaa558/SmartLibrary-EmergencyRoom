@@ -34,6 +34,7 @@ private:
     }
 
     Node* search(Node* node, int id, int &steps) {
+        steps++;
         if (node == nullptr || node->book.id == id)
             return node;
         if (id < node->book.id)

@@ -7,19 +7,21 @@ struct Book {
     string title;
     string author;
     Book(int bookId = 0, string bookTitle = "", string bookAuthor = "")
-        : id(bookId), title(bookTitle), author(bookAuthor) {}
+        : id(bookId), title(bookTitle), author(bookAuthor) {
+    }
 };
 
 struct Node {
     Book book;
     Node* left;
     Node* right;
+    int height;
     Node(Book b) : book(b), left(nullptr), right(nullptr) {}
 };
 
-class BookBST {
+class BookBST {  
 private:
-    Node* root;
+    //Node* root;
 
     Node* insert(Node* node, Book book) {
         if (node == nullptr)
@@ -31,12 +33,12 @@ private:
         return node;
     }
 
-    Node* search(Node* node, int id) {
+    Node* search(Node* node, int id, int &steps) {
         if (node == nullptr || node->book.id == id)
             return node;
         if (id < node->book.id)
-            return search(node->left, id);
-        return search(node->right, id);
+            return search(node->left, id, steps);
+        return search(node->right, id, steps);
     }
 
     Node* findMin(Node* node) {
@@ -70,12 +72,12 @@ private:
         return node;
     }
 
-    void inorder(Node* node) {
+    void inOrder(Node* node) {
         if (node == nullptr)
             return;
-        inorder(node->left);
+        inOrder(node->left);
         cout << node->book.id << " | " << node->book.title << " | " << node->book.author << endl;
-        inorder(node->right);
+        inOrder(node->right);
     }
 
     void clear(Node* node) {
@@ -87,6 +89,7 @@ private:
     }
 
 public:
+    Node* root;
     BookBST() : root(nullptr) {}
     ~BookBST() { clear(root); }
 
@@ -100,77 +103,156 @@ public:
         cout << "Book deleted\n";
     }
 
+    //closest book 
+    int closestId(Node* node, int targetID) {
+        Node* current = node;
+        int closest = node->book.id;
+        int minDiff = abs(targetID - node->book.id);
+
+        while (current != nullptr) {
+            int currentDiff = abs(targetID - current->book.id);
+
+            if (currentDiff < minDiff) {
+                minDiff = currentDiff;
+                closest = current->book.id;
+            }
+
+            if (targetID < current->book.id)
+                current = current->left;
+            else
+                current = current->right;
+        }
+        return closest;
+    }
+
     void searchBook(int id) {
-        Node* result = search(root, id);
-        if (result)
-            cout << result->book.id << " | " << result->book.title << " | " << result->book.author << endl;
-        else
+        int steps = 0;
+        Node* result = search(root, id, steps);
+        if (result) {
+            cout << "The book is found on address " << result << endl;
+            cout << result->book.id << " | " << result->book.title <<
+                " | " << result->book.author << endl;
+            cout << "It took " << steps << " steps to find it\n";
+        }
+        else {
             cout << "Not found\n";
+            id = closestId(root, id);
+            result = search(root,id, steps);
+            cout << "Closest Book is found on address result: ";
+            cout << result->book.id << " | " << result->book.title << " | " <<
+                result->book.author << endl;
+            cout << "It took " << steps << " steps to find it\n";
+        }
     }
 
     void displayBooks() {
-        inorder(root);
+        inOrder(root);
+    }
+
+    //find in range
+    void findInRange(Node* node, int from, int to) {
+        if (node == nullptr) return;
+
+        if (from < node->book.id) {
+            findInRange(node->left, from, to);
+        }
+
+        if (from <= node->book.id && to >= node->book.id) {
+            cout << node->book.id << " ";
+            cout << node->book.title << " ";
+            cout << node->book.author << " ";
+            cout << endl;
+        }
+
+        if (to > node->book.id) {
+            findInRange(node->right, from, to);
+        }
+    }
+
+    //calculate height
+    int getHeight(Node* node) {
+        if (node == nullptr) return 0;
+        int leftHeight = getHeight(node->left);
+        int rightHeight = getHeight(node->right);
+        return max(leftHeight, rightHeight) + 1;   
     }
 };
 
 int main() {
     BookBST library;
-    int choice;
+    int choice, from = 0, to = 0;
 
     do {
         cout << "\n1. Add Book\n";
         cout << "2. Search Book\n";
         cout << "3. Delete Book\n";
         cout << "4. Show All Books\n";
-        cout << "5. Exit\n";
+        cout << "5. Find books in specific range" << endl;
+        cout << "6.Exit" << endl;
         cout << "Enter choice: ";
         cin >> choice;
 
         switch (choice) {
-            case 1: {
-                int id;
-                string title, author;
-                cout << "Enter Book ID: ";
-                cin >> id;
-                cin.ignore();
-                cout << "Enter Book Title: ";
-                getline(cin, title);
-                cout << "Enter Author Name: ";
-                getline(cin, author);
-                library.insertBook(id, title, author);
-                break;
-            }
-
-            case 2: {
-                int id;
-                cout << "Enter ID to search: ";
-                cin >> id;
-                library.searchBook(id);
-                break;
-            }
-
-            case 3: {
-                int id;
-                cout << "Enter ID to delete: ";
-                cin >> id;
-                library.deleteBook(id);
-                break;
-            }
-
-            case 4:
-                cout << "\nShow All Books:\n";
-                library.displayBooks();
-                break;
-
-            case 5:
-                cout << "Program ended\n";
-                break;
-
-            default:
-                cout << "Invalid choice\n";
+        case 1: {
+            int id;
+            string title, author;
+            cout << "Enter Book ID: ";
+            cin >> id;
+            cin.ignore();
+            cout << "Enter Book Title: ";
+            getline(cin, title);
+            cout << "Enter Author Name: ";
+            getline(cin, author);
+            library.insertBook(id, title, author);
+            cout << "Added Successfully" << endl;
+            cout << "-----------------------------------------------------------" << endl;
+            break;
         }
 
-    } while (choice != 5);
+        case 2: {
+            int id;
+            cout << "Enter ID to search: ";
+            cin >> id;
+            library.searchBook(id);
+            cout << "-----------------------------------------------------------" << endl;
+            break;
+        }
+
+        case 3: {
+            int id;
+            cout << "Enter ID to delete: ";
+            cin >> id;
+            library.deleteBook(id);
+            cout << "Deleted Successfully" << endl;
+            cout << "-----------------------------------------------------------" << endl;
+            break;
+        }
+
+        case 4:
+            cout << "\nShow All Books:\n";
+            library.displayBooks();
+            cout << "-----------------------------------------------------------" << endl;
+            break;
+
+        case 5:
+            cout << "Program ended\n";
+            cout << "Enter range:\n";
+            cin >> from >> to;
+            cout << endl << endl;
+            library.findInRange(library.root, from, to);
+            cout << "-----------------------------------------------------------" << endl;
+            break;
+
+        case 6:
+            cout << "Program ended\n";
+            break;
+
+        default:
+            cout << "Invalid choice\n";
+        }
+
+    } while (choice != 6);
+    cout << "The height of tree is " << library.getHeight(library.root);
 
     return 0;
 }

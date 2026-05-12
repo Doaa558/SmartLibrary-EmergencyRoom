@@ -1,6 +1,8 @@
 #include<iostream>
+#include <cmath> 
 #include<limits>
 using namespace std;
+
 struct Book {
 	int id;
 	string title;
@@ -11,19 +13,21 @@ struct Book {
 		title = t;
 		author = a;
 	}
-	
+
 };
+
 struct Node {
 	Node* left;
 	Node* right;
 	Book data;
 	int height;
 	//initialization 
-	Node(Book b):data(b) {
+	Node(Book b) :data(b) {
 		left = right = nullptr;
 		height = 1;
 	}
 };
+
 class AVL {
 public:
 	Node* root;
@@ -51,6 +55,7 @@ public:
 		y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
 		return y;
 	}
+
 	// RR rotations
 	Node* LeftRotate(Node* x) {
 		Node* y = x->right;
@@ -61,14 +66,16 @@ public:
 		y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
 		return y;
 	}
-	Node* insert(Node* node,Book b) {
+
+	//insert
+	Node* insert(Node* node, Book b) {
 		if (node == nullptr)
 			return new Node(b);
 		else if (b.id > node->data.id) {
-			node->right = insert(node->right,b);
+			node->right = insert(node->right, b);
 		}
 		else if (b.id < node->data.id) {
-			node->left = insert(node->left,b);
+			node->left = insert(node->left, b);
 
 		}
 		else {
@@ -79,7 +86,7 @@ public:
 		//update balance
 		int balance = getBalance(node);
 		//LL  comparison with the child
-		if (getBalance(node) > 1 && b.id< node->left->data.id) {
+		if (getBalance(node) > 1 && b.id < node->left->data.id) {
 			return RightRotate(node);
 		}
 		//RR
@@ -100,31 +107,54 @@ public:
 		return node;
 	}
 
+	//closest book 
+	int closestId(Node* node, int targetID) {
+		Node* current = node;
+		int closest = node->data.id;
+		int minDiff = abs(targetID - node->data.id);
+
+		while (current != nullptr) {
+			int currentDiff = abs(targetID - current->data.id);
+
+			if (currentDiff < minDiff) {
+				minDiff = currentDiff;
+				closest = current->data.id;
+			}
+
+			if (targetID < current->data.id)
+				current = current->left;
+			else
+				current = current->right;
+		}
+		return closest;
+	}
 
 	//search
-	Node* search(Node* node, int id ) {
+	Node* search(Node* node, int id, int &steps) {
+		steps++;
 		if (node == nullptr || node->data.id == id) {
 			return node;
 		}
 		else if (id > node->data.id) {
-			return search(node->right, id);
+			return search(node->right, id, steps);
 		}
 		else if (id < node->data.id) {
-			return search(node->left, id);
+			return search(node->left, id, steps);
 		}
-		// if key does not exist
+		//if key does not exist
 		return nullptr;
 	}
+
 	//delete
-	Node* deleteNode(Node* node,int id) {
+	Node* deleteNode(Node* node, int id) {
 		if (node == nullptr) {
 			return node;
 		}
 		else if (id > node->data.id) {
-			node->right = deleteNode(node->right,id);
+			node->right = deleteNode(node->right, id);
 		}
 		else if (id < node->data.id) {
-			node->left = deleteNode(node->left,id);
+			node->left = deleteNode(node->left, id);
 		}
 		else {
 			if (node->left == nullptr || node->right == nullptr) {
@@ -145,12 +175,12 @@ public:
 			else {
 				Node* temp = maxValue(node->left);
 				// copy all the data not just ids
-				node->data= temp->data;
+				node->data = temp->data;
 				// remove duplicates
-				node->left = deleteNode(node->left,temp->data.id);
+				node->left = deleteNode(node->left, temp->data.id);
 
 			}
-			
+
 		}
 		if (node == nullptr) {
 			return node;
@@ -160,25 +190,26 @@ public:
 		//update balance
 		int balance = getBalance(node);
 		//LL
-		if (getBalance(node) > 1 && getBalance(node->left)>=0) {
+		if (getBalance(node) > 1 && getBalance(node->left) >= 0) {
 			return RightRotate(node);
 		}
 		//RR
-		else if (getBalance(node) < -1 && getBalance(node->right)<=0) {
+		else if (getBalance(node) < -1 && getBalance(node->right) <= 0) {
 			return LeftRotate(node);
 		}
 		//LR
-		else if (getBalance(node) > 1 && getBalance(node->left)<0) {
+		else if (getBalance(node) > 1 && getBalance(node->left) < 0) {
 			node->left = LeftRotate(node->left);
 			return RightRotate(node);
 		}
 		//RL
-		else if (getBalance(node) < -1 && getBalance(node->right)>0) {
+		else if (getBalance(node) < -1 && getBalance(node->right) > 0) {
 			node->right = RightRotate(node->right);
 			return LeftRotate(node);
 		}
 		return node;
 	}
+
 	// get the max in the left side
 	Node* maxValue(Node* node) {
 		while (node->right != nullptr) {
@@ -186,6 +217,7 @@ public:
 		}
 		return node;
 	}
+
 	// in order left root right 
 	void traverse(Node* node) {
 		if (node != nullptr) {
@@ -200,7 +232,7 @@ public:
 
 	//find in range
 	void findInRange(Node* node, int from, int to) {
-		if (node == nullptr) return; 
+		if (node == nullptr) return;
 
 		if (from < node->data.id) {
 			findInRange(node->left, from, to);
@@ -217,9 +249,30 @@ public:
 			findInRange(node->right, from, to);
 		}
 	}
+
+	void searchBook(int id) {
+		int steps = 0;
+		Node* result = search(root, id, steps);
+		if (result) {
+			cout << "The book is found on address " << result << endl;
+			cout << result->data.id << " | " << result->data.title << " | " 
+				<< result->data.author << endl;
+			cout << "It took " << steps << " steps to find it\n";
+		}
+		else {
+			cout << "Not found\n";
+			id = closestId(root, id);
+			result = search(root, id, steps);
+			cout << "Closest Book is found on address: " <<result<< ":  ";
+			cout << result->data.id << " | " << result->data.title << " | " <<
+				result->data.author << endl;
+			cout << "It took " << steps << " steps to find it\n";
+		}
+	}
 };
+
 int main() {
-	int id, choice=0, from = 0, to = 0;
+	int id, choice = 0, from = 0, to = 0;
 	string t, a;
 	AVL library;
 	Book b2(0, "", "");
@@ -246,45 +299,40 @@ int main() {
 			cin >> b2.author;
 			library.root = library.insert(library.root, b2);
 			cout << "Added Successfully" << endl;
-			cout << "-----------------------------------------------------------"<<endl;
+			cout << "-----------------------------------------------------------" << endl;
 			break;
 		case 2:
 			cout << " Enter the id to delete: " << endl;
 			cin >> b2.id;
 			library.root = library.deleteNode(library.root, b2.id);
 			cout << "Deleted Successfully" << endl;
-			cout << "-----------------------------------------------------------"<<endl;
+			cout << "-----------------------------------------------------------" << endl;
 			break;
 		case 3:
 			cout << "Enter the id to search: " << endl;
 			cin >> b2.id;
-			if (library.search(library.root, b2.id)) {
-				cout << " It is found on address " << library.search(library.root, b2.id) << endl;
-			}
-			else {
-				cout << "Not found" << endl;
-			}
-			cout << "-----------------------------------------------------------"<<endl;
+			library.searchBook(b2.id);
+			cout << "-----------------------------------------------------------" << endl;
 			break;
 		case 4:
 			library.traverse(library.root);
-			
-			cout << "-----------------------------------------------------------"<<endl;
+
+			cout << "-----------------------------------------------------------" << endl;
 			break;
 		case 5:
 			cout << "Enter range:\n";
 			cin >> from >> to;
-			cout << endl << endl; 
+			cout << endl << endl;
 			library.findInRange(library.root, from, to);
 			cout << "-----------------------------------------------------------" << endl;
 			break;
 		case 6:
-			cout << "Thanks for the usage";
+			cout << "Thanks for the usage\n";
 			break;
 		default:
 			cout << "choose the right number! " << endl;
-
 		}
-
 	}
+
+	cout << "The height of tree is " << library.getHeight(library.root);
 }

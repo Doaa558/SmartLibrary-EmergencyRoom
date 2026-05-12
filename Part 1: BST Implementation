@@ -115,17 +115,62 @@ public:
 
 int main() {
     BookBST library;
-    library.insertBook(1, "Riyad as-Salihin", "Imam Nawawi");
-    library.insertBook(2, "Fortress of the Muslim", "Saeed bin Ali bin Wahf Al-Qahtani");
-    library.insertBook(3, "Tafsir Ibn Kathir", "Ibn Kathir");
-    library.insertBook(4, "Al-Arba'in An-Nawawiyyah", "Imam Nawawi");
-    cout << "Show All Books:\n";
-    library.displayBooks();
-    cout << "\nSearch:id(3)\n";
-    library.searchBook(3);
-    cout << "\nDelete:id(2)\n";
-    library.deleteBook(2);
-    cout << "\nShow All Books:\n";
-    library.displayBooks();
+    int choice;
+
+    do {
+        cout << "\n1. Add Book\n";
+        cout << "2. Search Book\n";
+        cout << "3. Delete Book\n";
+        cout << "4. Show All Books\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                int id;
+                string title, author;
+                cout << "Enter Book ID: ";
+                cin >> id;
+                cin.ignore();
+                cout << "Enter Book Title: ";
+                getline(cin, title);
+                cout << "Enter Author Name: ";
+                getline(cin, author);
+                library.insertBook(id, title, author);
+                break;
+            }
+
+            case 2: {
+                int id;
+                cout << "Enter ID to search: ";
+                cin >> id;
+                library.searchBook(id);
+                break;
+            }
+
+            case 3: {
+                int id;
+                cout << "Enter ID to delete: ";
+                cin >> id;
+                library.deleteBook(id);
+                break;
+            }
+
+            case 4:
+                cout << "\nShow All Books:\n";
+                library.displayBooks();
+                break;
+
+            case 5:
+                cout << "Program ended\n";
+                break;
+
+            default:
+                cout << "Invalid choice\n";
+        }
+
+    } while (choice != 5);
+
     return 0;
 }

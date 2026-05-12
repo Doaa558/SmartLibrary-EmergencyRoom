@@ -15,7 +15,6 @@ struct Node {
     Book book;
     Node* left;
     Node* right;
-    int height;
     Node(Book b) : book(b), left(nullptr), right(nullptr) {}
 };
 
@@ -106,6 +105,7 @@ public:
 
     //closest book 
     int closestId(Node* node, int targetID) {
+        if (node == nullptr) return -1;
         Node* current = node;
         int closest = node->book.id;
         int minDiff = abs(targetID - node->book.id);
@@ -236,7 +236,6 @@ int main() {
             break;
 
         case 5:
-            cout << "Program ended\n";
             cout << "Enter range:\n";
             cin >> from >> to;
             cout << endl << endl;

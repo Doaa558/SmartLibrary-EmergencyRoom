@@ -109,6 +109,7 @@ public:
 
 	//closest book 
 	int closestId(Node* node, int targetID) {
+		if (node == nullptr) return -1;
 		Node* current = node;
 		int closest = node->data.id;
 		int minDiff = abs(targetID - node->data.id);
